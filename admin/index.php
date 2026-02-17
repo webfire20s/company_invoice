@@ -108,4 +108,4 @@ $page_title = "Create Invoice";
 
 </div>
 
-<?php include 'admin/layout/footer.php'; ?>
+<?php include 'layout/footer.php'; ?>
