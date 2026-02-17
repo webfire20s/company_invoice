@@ -20,75 +20,81 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "Invalid Login Credentials";
     }
 }
-$base_path = '';
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Login</title>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Purple Admin CSS -->
-  <link rel="stylesheet" href="assets/vendors/css/vendor.bundle.base.css">
-  <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
 
-<body>
-<div class="container-scroller">
-  <div class="container-fluid page-body-wrapper full-page-wrapper">
-    <div class="content-wrapper d-flex align-items-center auth">
-      <div class="row flex-grow">
-        <div class="col-lg-4 mx-auto">
-          <div class="card">
-            <div class="card-body px-5 py-5">
+<body class="bg-slate-100 flex items-center justify-center min-h-screen">
 
-              <h3 class="card-title text-left mb-3">Admin Login</h3>
+    <div class="w-full max-w-md">
 
-              <?php if(isset($error)): ?>
-                <div class="alert alert-danger">
-                  <?php echo $error; ?>
-                </div>
-              <?php endif; ?>
+        <!-- Card -->
+        <div class="bg-white shadow-xl rounded-2xl p-8 border">
 
-              <form method="POST">
-
-                <div class="form-group">
-                  <label>Username</label>
-                  <input type="text" name="username" 
-                         class="form-control p_input" 
-                         required>
-                </div>
-
-                <div class="form-group">
-                  <label>Password</label>
-                  <input type="password" name="password" 
-                         class="form-control p_input" 
-                         required>
-                </div>
-
-                <div class="text-center">
-                  <button type="submit" 
-                          class="btn btn-primary btn-block enter-btn">
-                    Login
-                  </button>
-                </div>
-
-              </form>
-
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-slate-800">
+                    Admin Login
+                </h2>
+                <p class="text-sm text-slate-500 mt-2">
+                    Access your billing dashboard
+                </p>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Purple Admin JS -->
-<script src="assets/vendors/js/vendor.bundle.base.js"></script>
-<script src="assets/js/off-canvas.js"></script>
-<script src="assets/js/hoverable-collapse.js"></script>
-<script src="assets/js/template.js"></script>
+            <?php if(isset($error)): ?>
+                <div class="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                    <?= $error; ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-6">
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Username
+                    </label>
+                    <input type="text"
+                           name="username"
+                           required
+                           class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Password
+                    </label>
+                    <input type="password"
+                           name="password"
+                           required
+                           class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition">
+                    Login
+                </button>
+
+            </form>
+
+        </div>
+
+        <p class="text-center text-xs text-slate-400 mt-6">
+            © <?= date('Y') ?> Billing System. All rights reserved.
+        </p>
+
+    </div>
 
 </body>
 </html>
