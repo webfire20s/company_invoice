@@ -127,13 +127,21 @@ while ($row = $result->fetch_assoc()):
     <td class="px-6 py-4 font-semibold">
         ₹<?= $row['total_amount'] ?>
     </td>
-    <td class="px-6 py-4 text-right">
+    <td class="px-6 py-4 text-right space-x-2">
+
         <a href="../<?= $row['file_path'] ?>"
-           target="_blank"
-           class="inline-flex items-center bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-100">
+        target="_blank"
+        class="inline-flex items-center bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-100">
             <i data-lucide="eye" class="w-3.5 h-3.5 mr-1"></i>
             View
         </a>
+
+        <a href="edit_invoice.php?id=<?= $row['id'] ?>"
+        class="inline-flex items-center bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-100">
+            <i data-lucide="pencil" class="w-3.5 h-3.5 mr-1"></i>
+            Edit
+        </a>
+
     </td>
 </tr>
 
@@ -186,14 +194,22 @@ while ($row = $result->fetch_assoc()):
     <td class="px-6 py-4 font-semibold">
         ₹<?= $row['total_amount'] ?>
     </td>
-    <td class="px-6 py-4 text-right">
-        <a href="../<?= $row['file_path'] ?>"
-           target="_blank"
-           class="inline-flex items-center bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-indigo-100">
-            <i data-lucide="eye" class="w-3.5 h-3.5 mr-1"></i>
-            View
-        </a>
-    </td>
+    <td class="px-6 py-4 text-right space-x-2">
+
+    <a href="../<?= $row['file_path'] ?>"
+       target="_blank"
+       class="inline-flex items-center bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-indigo-100">
+        <i data-lucide="eye" class="w-3.5 h-3.5 mr-1"></i>
+        View
+    </a>
+
+    <a href="edit_quotation.php?id=<?= $row['id'] ?>"
+       class="inline-flex items-center bg-amber-50 text-amber-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-amber-100">
+        <i data-lucide="pencil" class="w-3.5 h-3.5 mr-1"></i>
+        Edit
+    </a>
+
+</td>
 </tr>
 
 <?php endwhile; ?>

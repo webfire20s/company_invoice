@@ -152,6 +152,14 @@ require 'auth.php';
                                        value="0"
                                        class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Next Year Renewal Charge </label>
+                                <input type="number"
+                                       step="0.01"
+                                       name="renewal_charge"
+                                       value="0"
+                                       class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
 
                         </div>
                     </div>

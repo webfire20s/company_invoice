@@ -7,34 +7,82 @@ use Dompdf\Dompdf;
 
 /* ================= INPUT ================= */
 
-$client_name    = $_POST['client_name'];
-$client_email   = $_POST['client_email'];
-$client_mobile  = $_POST['client_mobile'];
-$client_address = $_POST['client_address'];
-$description    = $_POST['description'];
-$amount         = floatval($_POST['amount']);
-$discount       = floatval($_POST['discount']);
-$status         = $_POST['status'];
+$client_name    = $_POST['client_name'] ?? '';
+$client_email   = $_POST['client_email'] ?? '';
+$client_mobile  = $_POST['client_mobile'] ?? '';
+$client_address = $_POST['client_address'] ?? '';
+$description    = $_POST['description'] ?? '';
 
-$total = $amount - $discount;
+$amount   = isset($_POST['amount']) ? (float) $_POST['amount'] : 0;
+$discount = isset($_POST['discount']) ? (float) $_POST['discount'] : 0;
+
+$renewal_charge = isset($_POST['renewal_charge']) && $_POST['renewal_charge'] !== ''
+    ? (float) $_POST['renewal_charge']
+    : 0;
+
+$status = $_POST['status'] ?? '';
+/* ===== MULTI SERVICE SUPPORT ===== */
+
+$lines = explode("\n", trim($description));
+$items = [];
+$subtotal = 0;
+
+foreach ($lines as $line) {
+
+    if(strpos($line,'|') !== false){
+
+        list($service,$price) = explode('|',$line);
+
+        $service = trim($service);
+        $price = floatval(trim($price));
+
+        $items[] = [
+            "service"=>$service,
+            "price"=>$price
+        ];
+
+        $subtotal += $price;
+
+    } else {
+
+        $items[] = [
+            "service"=>$line,
+            "price"=>$amount
+        ];
+
+        $subtotal += $amount;
+    }
+}
+
+$total = $subtotal - $discount;
 $amount_words = numberToWords($total);
 
 /* ================= SEQUENTIAL INVOICE NUMBER ================= */
 
-$invoice_file = "invoice_counter.txt";
+if(isset($_POST['invoice_number'])){
 
-if(!file_exists($invoice_file)){
-    file_put_contents($invoice_file, "132"); // starting from WD000132
+    /* when regenerating invoice */
+    $invoice_number = $_POST['invoice_number'];
+
+} else {
+
+    /* normal invoice creation */
+
+    $invoice_file = "invoice_counter.txt";
+
+    if(!file_exists($invoice_file)){
+        file_put_contents($invoice_file, "132"); // starting from WD000132
+    }
+
+    $current_number = intval(file_get_contents($invoice_file));
+    $new_number = $current_number + 1;
+
+    file_put_contents($invoice_file, $new_number);
+
+    $invoice_number = "WD" . str_pad($new_number,6,"0",STR_PAD_LEFT);
 }
 
-$current_number = intval(file_get_contents($invoice_file));
-$new_number = $current_number + 1;
-
-file_put_contents($invoice_file, $new_number);
-
-$invoice_number = "WD" . str_pad($new_number,6,"0",STR_PAD_LEFT);
 $invoice_date = date("D, d F Y");
-
 /* ================= LOGO UPLOAD ================= */
 
 $logoPath = __DIR__ . '/logos/company_logo.png';
@@ -53,6 +101,16 @@ if(file_exists($logoPath)){
 $watermarkColor = ($status == "Paid") ? "rgba(0,150,0,0.15)" : "rgba(200,0,0,0.15)";
 
 /* ================= HTML TEMPLATE ================= */
+$renewal_section = '';
+
+if ($renewal_charge > 0) {
+    $renewal_section = '
+    <div class="section">
+        <strong>Next Year Renewal</strong><br>
+        Website Renewal Charge : Rs.' . number_format($renewal_charge,2) . ' INR
+    </div>
+    ';
+}
 
 $html = '
 <html>
@@ -157,7 +215,7 @@ img {
 
 <table style="width:100%; margin-bottom:20px;">
 <tr>
-<td style="vertical-align:top; background-color:#F5F5F5;">
+<td style="vertical-align:top; ">
     <h2 style="margin:0;">Invoice-'.$invoice_number.'</h2>
     <div style="margin-top:5px;">
         Invoice Number: '.$invoice_number.'<br>
@@ -213,19 +271,35 @@ Mob. : '.$client_mobile.'<br>
 <th style="text-align:right;">Total</th>
 </tr>
 
+';
+
+/* ===== PRINT SERVICES ===== */
+
+foreach($items as $item){
+
+$html .= '
 <tr>
-<td>'.$description.'</td>
-<td style="text-align:right;">Rs.'.number_format($amount,2).' INR</td>
+<td>'.$item["service"].' &nbsp;&nbsp; Rs.'.number_format($item["price"],2).'</td>
+<td></td>
+</tr>';
+
+}
+
+$html .= '
+
+<tr style="background-color:#F5F5F5;">
+<td><strong>Subtotal</strong></td>
+<td style="text-align:right;">Rs.'.number_format($subtotal,2).' INR</td>
 </tr>
 
-<tr style=background-color:#F5F5F5;>
+<tr style="background-color:#F5F5F5;">
 <td>Discount</td>
-<td style="text-align:right;background-color:#F5F5F5;">Rs.'.number_format($discount,2).' INR</td>
+<td style="text-align:right;">Rs.'.number_format($discount,2).' INR</td>
 </tr>
 
-<tr class="total-row" style=background-color:#F5F5F5;>
+<tr class="total-row" style="background-color:#F5F5F5;">
 <td>Total Amount</td>
-<td style="text-align:right; background-color:#F5F5F5;">Rs.'.number_format($total,2).' INR</td>
+<td style="text-align:right;">Rs.'.number_format($total,2).' INR</td>
 </tr>
 </table>
 
@@ -234,10 +308,8 @@ Mob. : '.$client_mobile.'<br>
 '.$amount_words.'
 </div>
 
-<div class="section">
-<strong>Next Year Renewal</strong><br>
-Website Renewal Charge : 1200
-</div>
+
+' . $renewal_section . '
 
 <div class="footer">
 WEBFIRE DEGITECH
@@ -254,25 +326,46 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4','portrait');
 $dompdf->render();
 
-$file_name = __DIR__."/invoices/".$invoice_number.".pdf";
-file_put_contents($file_name, $dompdf->output());
+$filename = $invoice_number . ".pdf";
+
+/* filesystem path (for saving) */
+$save_path = __DIR__ . "/invoices/" . $filename;
+file_put_contents($save_path, $dompdf->output());
+
+/* public path (for database + dashboard) */
+$db_path = "invoices/" . $filename;
+
+
+if(!isset($_POST['invoice_number'])){
 
 require 'config.php';
 
-$stmt = $conn->prepare("INSERT INTO invoices 
-(invoice_number, client_name, date, total_amount, file_path) 
-VALUES (?, ?, ?, ?, ?)");
+$stmt = $conn->prepare("INSERT INTO invoices
+(invoice_number, client_name, client_email, client_mobile, client_address,
+description, amount, discount, renewal_charge, status,
+date, total_amount, file_path)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-$stmt->bind_param("sssds", 
-    $invoice_number, 
-    $client_name, 
-    $date, 
-    $total_amount, 
-    $file_name
+$stmt->bind_param(
+"ssssssdddssds",
+$invoice_number,
+$client_name,
+$client_email,
+$client_mobile,
+$client_address,
+$description,
+$amount,
+$discount,
+$renewal_charge,
+$status,
+$date,
+$total,
+$db_path
 );
 
 $stmt->execute();
 
+}
 
 $dompdf->stream($invoice_number.".pdf", ["Attachment" => true]);
 exit;
