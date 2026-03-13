@@ -21,6 +21,8 @@ $payment_terms = nl2br($_POST['payment_terms']);
 $project_cost = floatval($_POST['project_cost']);
 
 
+
+
 /* ================= QUOTATION NUMBER ================= */
 
 if(isset($_POST['quotation_number'])){

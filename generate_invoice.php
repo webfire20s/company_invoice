@@ -279,8 +279,8 @@ foreach($items as $item){
 
 $html .= '
 <tr>
-<td>'.$item["service"].' &nbsp;&nbsp; Rs.'.number_format($item["price"],2).'</td>
-<td></td>
+<td>'.$item["service"].'</td>
+<td style="text-align:right;">Rs.'.number_format($item["price"],2).' INR</td>
 </tr>';
 
 }
