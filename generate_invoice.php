@@ -268,7 +268,7 @@ Mob. : '.$client_mobile.'<br>
 <table class="table">
 <tr style=background-color:#F5F5F5;>
 <th>Description</th>
-<th style="text-align:right;">Total</th>
+<th style="text-align:right;">Price</th>
 </tr>
 
 ';
