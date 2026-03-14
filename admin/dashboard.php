@@ -43,7 +43,7 @@ $search = $_GET['search'] ?? '';
                 <span>Dashboard</span>
             </a>
 
-            <a href="index.php"
+            <a href="invoice_form.php"
                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
                 <i data-lucide="file-plus" class="w-5 h-5"></i>
                 <span>Create Invoice</span>

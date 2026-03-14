@@ -16,6 +16,16 @@ $description    = $_POST['description'] ?? '';
 $amount   = isset($_POST['amount']) ? (float) $_POST['amount'] : 0;
 $discount = isset($_POST['discount']) ? (float) $_POST['discount'] : 0;
 
+/* ================= OPTIONAL GST DETAILS ================= */
+
+$gst_rate = isset($_POST['gst_rate']) ? (float) $_POST['gst_rate'] : 0;
+
+$gstin          = $_POST['gstin'] ?? '';
+$place_of_supply= $_POST['place_of_supply'] ?? '';
+$hsn_sac        = $_POST['hsn_sac'] ?? '';
+$company_gstin  = $_POST['company_gstin'] ?? '';
+
+
 $renewal_charge = isset($_POST['renewal_charge']) && $_POST['renewal_charge'] !== ''
     ? (float) $_POST['renewal_charge']
     : 0;
@@ -54,7 +64,15 @@ foreach ($lines as $line) {
     }
 }
 
-$total = $subtotal - $discount;
+$after_discount = $subtotal - $discount;
+
+$gst_amount = 0;
+
+if($gst_rate > 0){
+    $gst_amount = $after_discount * ($gst_rate / 100);
+}
+
+$total = $after_discount + $gst_amount;
 $amount_words = numberToWords($total);
 
 /* ================= SEQUENTIAL INVOICE NUMBER ================= */
@@ -111,7 +129,23 @@ if ($renewal_charge > 0) {
     </div>
     ';
 }
+/* ================= GST INFO SECTION ================= */
 
+$gst_section = '';
+
+if($gst_rate > 0 || $gstin != '' || $place_of_supply != '' || $hsn_sac != ''){
+
+$gst_section = '
+<div class="right">
+<strong>GST Details</strong><br>
+'.($company_gstin ? 'Our GSTIN : '.$company_gstin.'<br>' : '').'
+'.($gstin ? 'Client GSTIN : '.$gstin.'<br>' : '').'
+'.($place_of_supply ? 'Place of Supply : '.$place_of_supply.'<br>' : '').'
+'.($hsn_sac ? 'HSN/SAC Code : '.$hsn_sac.'<br>' : '').'
+'.($gst_rate>0 ? 'GST Rate : '.$gst_rate.'%<br>' : '').'
+</div>
+';
+}
 $html = '
 <html>
 <head>
@@ -257,12 +291,20 @@ UPI ID: 8434636013@hdfcbank
 <div class="clear"></div>
 </div>
 
-<div class="section">
+<div class="section two-column">
+
+<div class="left">
 <strong>Invoiced To</strong><br>
 '.$client_name.'<br>
 Mob. : '.$client_mobile.'<br>
 '.$client_email.'<br>
 '.$client_address.'
+</div>
+
+'.$gst_section.'
+
+<div class="clear"></div>
+
 </div>
 
 <table class="table">
@@ -296,6 +338,13 @@ $html .= '
 <td>Discount</td>
 <td style="text-align:right;">Rs.'.number_format($discount,2).' INR</td>
 </tr>
+
+' . ($gst_rate > 0 ? '
+<tr style="background-color:#F5F5F5;">
+<td>GST ('.$gst_rate.'%)</td>
+<td style="text-align:right;">Rs.'.number_format($gst_amount,2).' INR</td>
+</tr>
+' : '') . '
 
 <tr class="total-row" style="background-color:#F5F5F5;">
 <td>Total Amount</td>
