@@ -72,6 +72,29 @@ require 'auth.php';
                 <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                 <span class="font-medium">Create Quotation</span>
             </a>
+            <a href="create_staff.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                <span>Create Staff</span>
+            </a>
+
+            <a href="staff_list.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span>Staff List</span>
+            </a>
+
+            <a href="create_project.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                <span>Create Project</span>
+            </a>
+
+            <a href="projects_list.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="folder" class="w-5 h-5"></i>
+                <span>Projects</span>
+            </a>
 
             <div class="pt-8 mt-8 border-t border-slate-900">
                 <a href="logout.php" 

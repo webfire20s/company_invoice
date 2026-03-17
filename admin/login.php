@@ -5,20 +5,52 @@ require '../config.php';
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $username = $_POST['username'];
-    $password = md5($_POST['password']);
+    $password_raw = $_POST['password'];
+
+    // =========================
+    // 🔹 1. ADMIN LOGIN (EXISTING - UNTOUCHED LOGIC)
+    // =========================
+    $password_md5 = md5($password_raw);
 
     $stmt = $conn->prepare("SELECT * FROM admins WHERE username=? AND password=?");
-    $stmt->bind_param("ss", $username, $password);
+    $stmt->bind_param("ss", $username, $password_md5);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows == 1) {
         $_SESSION['admin'] = $username;
-        header("Location: dashboard.php");
+        $_SESSION['role'] = 'admin'; // ✅ NEW (does not affect old code)
+
+        header("Location: ../index.php");
         exit();
-    } else {
-        $error = "Invalid Login Credentials";
     }
+
+    // =========================
+    // 🔹 2. STAFF LOGIN (NEW)
+    // =========================
+    $stmt = $conn->prepare("SELECT * FROM staff WHERE email=?");
+    $stmt->bind_param("s", $username); // using same input field
+    $stmt->execute();
+    $staffResult = $stmt->get_result();
+
+    if ($staff = $staffResult->fetch_assoc()) {
+
+        // IMPORTANT: staff uses password_hash
+        if (password_verify($password_raw, $staff['password'])) {
+
+            $_SESSION['staff_id'] = $staff['id'];
+            $_SESSION['staff_name'] = $staff['name'];
+            $_SESSION['role'] = 'staff';
+
+            header("Location: ../staff_panel.php");
+            exit();
+        }
+    }
+
+    // =========================
+    // ❌ INVALID
+    // =========================
+    $error = "Invalid Login Credentials";
 }
 ?>
 
@@ -63,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div>
                     <label class="block text-sm font-medium mb-2">
-                        Username
+                        Username / Email ID(For Staff)
                     </label>
                     <input type="text"
                            name="username"

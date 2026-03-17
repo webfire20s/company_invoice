@@ -21,7 +21,7 @@ $pending = $q4->fetch_assoc()['pending'] ?? 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Billing System</title>
+    <title>Home | Billing System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -81,9 +81,32 @@ $pending = $q4->fetch_assoc()['pending'] ?? 0;
                 <i data-lucide="clipboard-list" class="w-5 h-5"></i>
                 <span class="font-medium">Create Quotation</span>
             </a>
+            <a href="admin/create_staff.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="user-plus" class="w-5 h-5"></i>
+                <span>Create Staff</span>
+            </a>
+
+            <a href="admin/staff_list.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="users" class="w-5 h-5"></i>
+                <span>Staff List</span>
+            </a>
+
+            <a href="admin/create_project.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                <span>Create Project</span>
+            </a>
+
+            <a href="admin/projects_list.php"
+                class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+                <i data-lucide="folder" class="w-5 h-5"></i>
+                <span>Projects</span>
+            </a>
 
             <div class="pt-8 mt-8 border-t border-slate-900">
-                <a href="logout.php" 
+                <a href="admin/logout.php" 
                 class="flex items-center space-x-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all duration-200">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
                     <span class="font-medium">Logout</span>
@@ -178,6 +201,38 @@ $pending = $q4->fetch_assoc()['pending'] ?? 0;
                         <p class="text-2xl font-extrabold text-slate-900">₹<?php echo number_format($pending, 2); ?></p>
                     </div>
                 </a>
+
+            </div>
+
+            <?php
+            $projects = $conn->query("
+            SELECT p.*, s.name as staff_name
+            FROM projects p
+            JOIN staff s ON p.staff_id = s.id
+            ORDER BY p.id DESC LIMIT 5
+            ");
+            ?>
+
+            <div class="bg-white p-6 rounded-xl mt-10 border">
+
+                <h3 class="text-lg font-semibold mb-4">Projects Overview</h3>
+
+                <?php while($p = $projects->fetch_assoc()): ?>
+
+                <div class="mb-4">
+                    <p class="font-medium"><?= $p['project_name'] ?> (<?= $p['staff_name'] ?>)</p>
+
+                    <div class="w-full bg-gray-200 h-2 rounded">
+                        <div class="bg-blue-600 h-2 rounded"
+                            style="width: <?= $p['progress'] ?>%">
+                        </div>
+                    </div>
+
+                    <p class="text-xs"><?= $p['progress'] ?>%</p>
+
+                </div>
+
+                <?php endwhile; ?>
 
             </div>
 
