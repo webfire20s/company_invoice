@@ -121,7 +121,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             </div>
         </nav>
 
-        <div class="p-6">
+        <!-- <div class="p-6">
             <div class="bg-slate-900/50 rounded-2xl p-4 border border-slate-800">
                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Status</p>
                 <div class="flex items-center space-x-2">
@@ -129,7 +129,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                     <span class="text-xs text-slate-300 font-medium">System Online</span>
                 </div>
             </div>
-        </div>
+        </div> -->
     </aside>
 
     <main class="flex-1 overflow-y-auto">

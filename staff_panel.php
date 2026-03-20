@@ -12,10 +12,40 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'staff') {
 $staff_id = $_SESSION['staff_id'];
 
 $result = $conn->query("
-SELECT * FROM projects 
-WHERE staff_id = $staff_id  
+SELECT project_name, progress, id,
+client_name, domain_name, client_email, client_mobile, city,
+notes
+FROM projects 
+WHERE staff_id = $staff_id
 ORDER BY id DESC
 ");
+$month = date('m');
+$year = date('Y');
+
+/* TOTAL PROJECTS (MONTH) */
+$total_projects = $conn->query("
+SELECT COUNT(*) as total 
+FROM projects 
+WHERE staff_id = $staff_id 
+AND MONTH(created_at) = $month 
+AND YEAR(created_at) = $year
+")->fetch_assoc()['total'];
+
+/* TOTAL REVENUE (PAID) */
+$total_revenue = $conn->query("
+SELECT SUM(project_amount) as total 
+FROM projects 
+WHERE staff_id = $staff_id 
+AND payment_status = 'Paid'
+")->fetch_assoc()['total'] ?? 0;
+
+/* TOTAL PENDING */
+$total_pending = $conn->query("
+SELECT SUM(project_amount) as total 
+FROM projects 
+WHERE staff_id = $staff_id 
+AND payment_status = 'Pending'
+")->fetch_assoc()['total'] ?? 0;
 ?>
 
 <!DOCTYPE html>
@@ -75,7 +105,7 @@ ORDER BY id DESC
             </a>
 
             <div class="pt-8 mt-8 border-t border-slate-900">
-                <a href="logout.php" 
+                <a href="admin/logout.php" 
                 class="flex items-center space-x-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all duration-200">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
                     <span class="font-medium">Logout</span>
@@ -105,6 +135,33 @@ ORDER BY id DESC
                 <span>Create Project</span>
             </a>
         </header>
+        <div class="p-10 pt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- TOTAL PROJECTS -->
+            <div class="bg-white rounded-2xl shadow p-6 border">
+                <p class="text-xs text-slate-500">This Month Projects</p>
+                <h2 class="text-2xl font-bold text-blue-600">
+                    <?= $total_projects ?>
+                </h2>
+            </div>
+
+            <!-- REVENUE -->
+            <div class="bg-white rounded-2xl shadow p-6 border">
+                <p class="text-xs text-slate-500">Total Revenue</p>
+                <h2 class="text-2xl font-bold text-green-600">
+                    ₹<?= number_format($total_revenue,2) ?>
+                </h2>
+            </div>
+
+            <!-- PENDING -->
+            <div class="bg-white rounded-2xl shadow p-6 border">
+                <p class="text-xs text-slate-500">Pending Amount</p>
+                <h2 class="text-2xl font-bold text-red-600">
+                    ₹<?= number_format($total_pending,2) ?>
+                </h2>
+            </div>
+
+        </div>
 
         <div class="p-10">
             <div class="data-card rounded-3xl shadow-xl overflow-hidden">
@@ -115,33 +172,74 @@ ORDER BY id DESC
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50/50 border-b border-slate-100">
-                            <th class="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-500">Project Name</th>
-                            <th class="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-500">Progress Status</th>
-                            <th class="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-500 text-right">Action</th>
+                            <th class="px-8 py-5 text-[11px] font-bold uppercase text-slate-500">Project</th>
+                            <th class="px-8 py-5 text-[11px] font-bold uppercase text-slate-500">Client</th>
+                            <th class="px-8 py-5 text-[11px] font-bold uppercase text-slate-500">Progress</th>
+                            <th class="px-8 py-5 text-[11px] font-bold uppercase text-slate-500">Notes</th>
+                            <th class="px-8 py-5 text-[11px] font-bold uppercase text-slate-500 text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         <?php while($row = $result->fetch_assoc()): ?>
-                        <tr class="transition-colors">
+                        <tr>
+
+                            <!-- PROJECT -->
                             <td class="px-8 py-5">
-                                <span class="font-bold text-slate-700 block"><?= $row['project_name'] ?></span>
+                                <span class="font-bold text-slate-700 block">
+                                    <?= $row['project_name'] ?>
+                                </span>
+                                <span class="text-xs text-slate-400">
+                                    <?= $row['domain_name'] ?? '' ?>
+                                </span>
                             </td>
+
+                            <!-- CLIENT -->
+                            <td class="px-8 py-5">
+                                <div class="text-sm font-semibold text-slate-700">
+                                    <?= $row['client_name'] ?? 'N/A' ?>
+                                </div>
+                                <div class="text-xs text-slate-400">
+                                    <?= $row['client_email'] ?? '' ?>
+                                </div>
+                                <div class="text-xs text-slate-400">
+                                    <?= $row['client_mobile'] ?? '' ?>
+                                </div>
+                                <div class="text-xs text-slate-400">
+                                    <?= $row['city'] ?? '' ?>
+                                </div>
+                            </td>
+
+                            <!-- PROGRESS -->
                             <td class="px-8 py-5">
                                 <div class="w-full max-w-[160px]">
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="text-[10px] font-black text-blue-600"><?= $row['progress'] ?>%</span>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="text-[10px] font-black text-blue-600">
+                                            <?= $row['progress'] ?>%
+                                        </span>
                                     </div>
-                                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                        <div class="bg-blue-600 h-full rounded-full" style="width: <?= $row['progress'] ?>%"></div>
+                                    <div class="w-full bg-slate-100 h-1.5 rounded-full">
+                                        <div class="bg-blue-600 h-full"
+                                            style="width: <?= $row['progress'] ?>%">
+                                        </div>
                                     </div>
                                 </div>
                             </td>
+                            <!-- NOTES -->
+                            <td class="px-8 py-5">
+                                <div class="text-xs text-slate-600 max-w-[250px] truncate">
+                                    <?= !empty($row['notes']) ? $row['notes'] : 'No updates yet' ?>
+                                </div>
+                            </td>
+
+                            <!-- ACTION -->
                             <td class="px-8 py-5 text-right">
-                                <a href="update_project_staff.php?id=<?= $row['id'] ?>" class="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-bold text-sm transition-colors">
+                                <a href="update_project_staff.php?id=<?= $row['id'] ?>"
+                                class="inline-flex items-center space-x-1 text-blue-600 hover:text-blue-800 font-bold text-sm">
                                     <span>Update</span>
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </a>
                             </td>
+
                         </tr>
                         <?php endwhile; ?>
                     </tbody>

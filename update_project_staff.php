@@ -11,16 +11,75 @@ $id = $_GET['id'];
 $staff_id = $_SESSION['staff_id'];
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    $progress = $_POST['progress'];
 
-    $stmt = $conn->prepare("UPDATE projects SET progress=? WHERE id=? AND staff_id=?");
-    $stmt->bind_param("iii",$progress,$id,$staff_id);
+    $name = $_POST['project_name'];
+    $desc = $_POST['description'];
+
+    $client_name = $_POST['client_name'] ?? '';
+    $domain_name = $_POST['domain_name'] ?? '';
+    $client_email = $_POST['client_email'] ?? '';
+    $client_mobile = $_POST['client_mobile'] ?? '';
+    $address = $_POST['address'] ?? '';
+    $city = $_POST['city'] ?? '';
+    $state = $_POST['state'] ?? '';
+    $pincode = $_POST['pincode'] ?? '';
+
+    $notes = $_POST['notes'] ?? '';
+
+    $progress = (int) $_POST['progress'];
+    $amount = isset($_POST['project_amount']) ? (float) $_POST['project_amount'] : 0;
+    $status = $_POST['payment_status'] ?? 'Pending';
+
+    $stmt = $conn->prepare("
+        UPDATE projects 
+        SET 
+            project_name=?,
+            description=?,
+            client_name=?,
+            domain_name=?,
+            client_email=?,
+            client_mobile=?,
+            address=?,
+            city=?,
+            state=?,
+            pincode=?,
+            notes=?,
+            progress=?,
+            project_amount=?,
+            payment_status=?
+        WHERE id=? AND staff_id=?
+    ");
+
+    $stmt->bind_param(
+        "sssssssssssidsii",
+        $name,
+        $desc,
+        $client_name,
+        $domain_name,
+        $client_email,
+        $client_mobile,
+        $address,
+        $city,
+        $state,
+        $pincode,
+        $notes,
+        $progress,
+        $amount,
+        $status,
+        $id,
+        $staff_id
+    );
+
     $stmt->execute();
 
     header("Location: staff_panel.php");
+    exit;
 }
 
-$project = $conn->query("SELECT * FROM projects WHERE id=$id AND staff_id=$staff_id")->fetch_assoc();
+$project = $conn->query("
+SELECT * FROM projects 
+WHERE id=$id AND staff_id=$staff_id
+")->fetch_assoc();
 ?>
 
 <!DOCTYPE html>
@@ -125,12 +184,99 @@ $project = $conn->query("SELECT * FROM projects WHERE id=$id AND staff_id=$staff
                 </div>
 
                 <form method="POST" class="space-y-6">
+                    <!-- NOTES -->
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            Project Notes (Work Done / Pending)
+                        </label>
+                        <textarea name="notes" rows="4"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none"><?= $project['notes'] ?? '' ?></textarea>
+                    </div>
+                    <!-- PROJECT NAME -->
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Project Name</label>
+                        <input type="text" name="project_name"
+                            value="<?= $project['project_name'] ?>"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                    </div>
+
+                    <!-- DESCRIPTION -->
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
+                        <textarea name="description" rows="3"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none"><?= $project['description'] ?></textarea>
+                    </div>
+                    <hr>
+
+                    <p class="text-xs font-bold text-slate-500 uppercase">Client Details</p>
+
+                    <input type="text" name="client_name" placeholder="Client Name"
+                    value="<?= $project['client_name'] ?? '' ?>"
+                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
+
+                    <input type="text" name="domain_name" placeholder="Domain Name"
+                    value="<?= $project['domain_name'] ?? '' ?>"
+                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
+
+                    <input type="email" name="client_email" placeholder="Email"
+                    value="<?= $project['client_email'] ?? '' ?>"
+                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
+
+                    <input type="text" name="client_mobile" placeholder="Mobile"
+                    value="<?= $project['client_mobile'] ?? '' ?>"
+                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
+
+                    <textarea name="address" placeholder="Address"
+                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm"><?= $project['address'] ?? '' ?></textarea>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <input type="text" name="city" placeholder="City"
+                        value="<?= $project['city'] ?? '' ?>" class="bg-slate-50 border rounded-xl px-3 py-2 text-sm">
+
+                        <input type="text" name="state" placeholder="State"
+                        value="<?= $project['state'] ?? '' ?>" class="bg-slate-50 border rounded-xl px-3 py-2 text-sm">
+
+                        <input type="text" name="pincode" placeholder="Pincode"
+                        value="<?= $project['pincode'] ?? '' ?>" class="bg-slate-50 border rounded-xl px-3 py-2 text-sm">
+                    </div>
                     <div>
                         <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">Completion Percentage</label>
                         <input type="number" name="progress" value="<?= $project['progress'] ?>" min="0" max="100"
                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-3xl font-bold text-center text-blue-600 input-focus outline-none">
                         <p class="mt-2 text-[10px] text-slate-400 italic">Adjust from 0% to 100%</p>
                     </div>
+
+                    <!-- PROJECT AMOUNT -->
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            Project Amount (₹)
+                        </label>
+                        <input type="number"
+                            step="0.01"
+                            name="project_amount"
+                            value="<?= $project['project_amount'] ?? 0 ?>"
+                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                    </div>
+
+                    <!-- PAYMENT STATUS -->
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                            Payment Status
+                        </label>
+                        <select name="payment_status"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                            
+                            <option value="Pending" <?= ($project['payment_status'] == 'Pending') ? 'selected' : '' ?>>
+                                Pending
+                            </option>
+
+                            <option value="Paid" <?= ($project['payment_status'] == 'Paid') ? 'selected' : '' ?>>
+                                Paid
+                            </option>
+
+                        </select>
+                    </div>
+
 
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center space-x-2">
                         <i data-lucide="refresh-cw" class="w-5 h-5"></i>
