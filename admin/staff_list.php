@@ -141,7 +141,8 @@ $result = $conn->query("SELECT * FROM staff ORDER BY id DESC");
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         <?php while($row = $result->fetch_assoc()): ?>
-                        <tr class="transition-colors">
+                        <tr onclick="window.location='staff_details.php?id=<?= $row['id'] ?>'"
+                            class="transition-colors cursor-pointer hover:bg-slate-50">
                             <td class="px-8 py-5">
                                 <div class="flex items-center space-x-4">
                                     <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm border border-slate-200">

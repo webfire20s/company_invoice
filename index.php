@@ -219,16 +219,22 @@ $pending = $q4->fetch_assoc()['pending'] ?? 0;
 
                 <?php while($p = $projects->fetch_assoc()): ?>
 
-                <div class="mb-4">
+                <div onclick="window.location='project_details.php?id=<?= $p['id'] ?>'"
+                    class="mb-4 cursor-pointer hover:bg-slate-50 p-2 rounded transition">
                     <p class="font-medium"><?= $p['project_name'] ?> (<?= $p['staff_name'] ?>)</p>
 
-                    <div class="w-full bg-gray-200 h-2 rounded">
+                    <!-- <div class="w-full bg-gray-200 h-2 rounded">
                         <div class="bg-blue-600 h-2 rounded"
                             style="width: <?= $p['progress'] ?>%">
                         </div>
                     </div>
 
-                    <p class="text-xs"><?= $p['progress'] ?>%</p>
+                    <p class="text-xs"><?= $p['progress'] ?>%</p> -->
+                    
+                    <p class="text-xs text-slate-500 mt-1">
+                        ₹<?= number_format($p['project_amount'] ?? 0,2) ?> • 
+                        <?= $p['payment_status'] ?? 'Pending' ?>
+                    </p>
 
                 </div>
 

@@ -27,8 +27,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $notes = $_POST['notes'] ?? '';
 
     $progress = (int) $_POST['progress'];
-    $amount = isset($_POST['project_amount']) ? (float) $_POST['project_amount'] : 0;
-    $status = $_POST['payment_status'] ?? 'Pending';
+
+    $project_amount = (float) $_POST['project_amount'];
+    $paid_amount = isset($_POST['paid_amount']) ? (float) $_POST['paid_amount'] : 0;
+
+    // 🔥 AUTO CALCULATE PENDING
+    $pending_amount = $project_amount - $paid_amount;
+
+    // 🔥 AUTO STATUS
+    $status = ($pending_amount <= 0) ? 'Paid' : 'Pending';
 
     $stmt = $conn->prepare("
         UPDATE projects 
@@ -46,12 +53,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             notes=?,
             progress=?,
             project_amount=?,
+            paid_amount=?,
+            pending_amount=?,
             payment_status=?
         WHERE id=? AND staff_id=?
     ");
 
     $stmt->bind_param(
-        "sssssssssssidsii",
+        "sssssssssssiddsdii",
         $name,
         $desc,
         $client_name,
@@ -64,7 +73,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         $pincode,
         $notes,
         $progress,
-        $amount,
+        $project_amount,
+        $paid_amount,
+        $pending_amount,
         $status,
         $id,
         $staff_id
@@ -75,7 +86,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     header("Location: staff_panel.php");
     exit;
 }
-
 $project = $conn->query("
 SELECT * FROM projects 
 WHERE id=$id AND staff_id=$staff_id
@@ -86,7 +96,7 @@ WHERE id=$id AND staff_id=$staff_id
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Update Progress | Staff Portal</title>
+    <title>Update Project | Staff Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -97,7 +107,7 @@ WHERE id=$id AND staff_id=$staff_id
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .form-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(226, 232, 240, 0.8);
         }
@@ -108,7 +118,6 @@ WHERE id=$id AND staff_id=$staff_id
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
             border-color: #2563eb;
         }
-        /* Hide scrollbar while keeping functionality */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -118,14 +127,15 @@ WHERE id=$id AND staff_id=$staff_id
 
 <div class="flex h-screen overflow-hidden">
 
-    <aside class="w-72 bg-slate-950 text-white hidden md:flex flex-col border-r border-slate-800">
-        <div class="p-8">
+    <aside id="sidebar" class="w-72 bg-slate-950 text-white hidden md:flex flex-col border-r border-slate-800 transition-all duration-300 z-50">
+        <div class="p-8 flex items-center justify-between">
             <div class="flex items-center space-x-3 group cursor-default">
                 <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
                     <i data-lucide="layers" class="w-6 h-6 text-white"></i>
                 </div>
                 <span class="text-xl font-bold tracking-tight text-white">Billing Pro</span>
             </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i data-lucide="x"></i></button>
         </div>
 
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
@@ -151,137 +161,125 @@ WHERE id=$id AND staff_id=$staff_id
                 </a>
             </div>
         </nav>
-
-        <div class="p-6">
-            <div class="bg-slate-900/50 rounded-2xl p-4 border border-slate-800">
-                <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Status</p>
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span class="text-xs text-slate-300 font-medium">System Online</span>
-                </div>
-            </div>
-        </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 px-10 py-6 sticky top-0 z-20 flex items-center space-x-4">
-            <a href="staff_panel.php" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
-                <i data-lucide="arrow-left" class="w-5 h-5"></i>
-            </a>
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">Update Progress</h2>
-                <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Project Lifecycle / Milestone Update</p>
+        <header class="bg-white border-b border-slate-200 px-6 md:px-10 py-6 sticky top-0 z-20 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleSidebar()" class="md:hidden p-2 bg-slate-100 rounded-lg text-slate-600">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <a href="staff_panel.php" class="hidden md:flex p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800">Update Project</h2>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Editing: <?= htmlspecialchars($project['project_name']) ?></p>
+                </div>
             </div>
         </header>
 
-        <div class="p-10 flex justify-center pt-20">
-            <div class="form-card w-full max-w-md rounded-3xl shadow-xl overflow-hidden p-8 text-center">
-                <div class="mb-8">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="activity" class="w-8 h-8"></i>
+        <div class="p-4 md:p-10 flex justify-center">
+            <div class="form-card w-full max-w-2xl rounded-[2.5rem] shadow-2xl shadow-slate-200/60 overflow-hidden p-6 md:p-10 mb-10">
+                
+                <div class="mb-10 text-center">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                        <i data-lucide="edit-3" class="w-10 h-10"></i>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-800"><?= $project['project_name'] ?></h3>
+                    <h3 class="text-xl font-extrabold text-slate-800 tracking-tight">Modify Milestone & Billing</h3>
                 </div>
 
-                <form method="POST" class="space-y-6">
-                    <!-- NOTES -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                            Project Notes (Work Done / Pending)
-                        </label>
-                        <textarea name="notes" rows="4"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none"><?= $project['notes'] ?? '' ?></textarea>
-                    </div>
-                    <!-- PROJECT NAME -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Project Name</label>
-                        <input type="text" name="project_name"
-                            value="<?= $project['project_name'] ?>"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
-                    </div>
+                <form method="POST" class="space-y-8">
+                    
+                    <div class="space-y-5">
+                        <div class="flex items-center space-x-2 pb-2 border-b border-slate-100">
+                            <i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Project Overview</span>
+                        </div>
 
-                    <!-- DESCRIPTION -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
-                        <textarea name="description" rows="3"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none"><?= $project['description'] ?></textarea>
-                    </div>
-                    <hr>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Project Name</label>
+                            <input type="text" name="project_name" value="<?= htmlspecialchars($project['project_name']) ?>"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm input-focus outline-none font-medium">
+                        </div>
 
-                    <p class="text-xs font-bold text-slate-500 uppercase">Client Details</p>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Scope / Description</label>
+                            <textarea name="description" rows="3"
+                                      class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm input-focus outline-none"><?= htmlspecialchars($project['description']) ?></textarea>
+                        </div>
 
-                    <input type="text" name="client_name" placeholder="Client Name"
-                    value="<?= $project['client_name'] ?? '' ?>"
-                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
-
-                    <input type="text" name="domain_name" placeholder="Domain Name"
-                    value="<?= $project['domain_name'] ?? '' ?>"
-                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
-
-                    <input type="email" name="client_email" placeholder="Email"
-                    value="<?= $project['client_email'] ?? '' ?>"
-                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
-
-                    <input type="text" name="client_mobile" placeholder="Mobile"
-                    value="<?= $project['client_mobile'] ?? '' ?>"
-                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
-
-                    <textarea name="address" placeholder="Address"
-                    class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm"><?= $project['address'] ?? '' ?></textarea>
-
-                    <div class="grid grid-cols-3 gap-2">
-                        <input type="text" name="city" placeholder="City"
-                        value="<?= $project['city'] ?? '' ?>" class="bg-slate-50 border rounded-xl px-3 py-2 text-sm">
-
-                        <input type="text" name="state" placeholder="State"
-                        value="<?= $project['state'] ?? '' ?>" class="bg-slate-50 border rounded-xl px-3 py-2 text-sm">
-
-                        <input type="text" name="pincode" placeholder="Pincode"
-                        value="<?= $project['pincode'] ?? '' ?>" class="bg-slate-50 border rounded-xl px-3 py-2 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">Completion Percentage</label>
-                        <input type="number" name="progress" value="<?= $project['progress'] ?>" min="0" max="100"
-                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-3xl font-bold text-center text-blue-600 input-focus outline-none">
-                        <p class="mt-2 text-[10px] text-slate-400 italic">Adjust from 0% to 100%</p>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1 text-blue-600">Work Progress Notes</label>
+                            <textarea name="notes" rows="4" placeholder="What's the current status of the work?"
+                                      class="w-full bg-blue-50/30 border border-blue-100 rounded-2xl px-5 py-4 text-sm input-focus outline-none italic"><?= htmlspecialchars($project['notes'] ?? '') ?></textarea>
+                        </div>
                     </div>
 
-                    <!-- PROJECT AMOUNT -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                            Project Amount (₹)
-                        </label>
-                        <input type="number"
-                            step="0.01"
-                            name="project_amount"
-                            value="<?= $project['project_amount'] ?? 0 ?>"
-                            class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
-                    </div>
-
-                    <!-- PAYMENT STATUS -->
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                            Payment Status
-                        </label>
-                        <select name="payment_status"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                    <div class="space-y-4 pt-4">
+                        <div class="flex items-center space-x-2 pb-2 border-b border-slate-100">
+                            <i data-lucide="users" class="w-4 h-4 text-blue-500"></i>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Client Information</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" name="client_name" placeholder="Client Name" value="<?= $project['client_name'] ?? '' ?>"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
                             
-                            <option value="Pending" <?= ($project['payment_status'] == 'Pending') ? 'selected' : '' ?>>
-                                Pending
-                            </option>
+                            <input type="text" name="domain_name" placeholder="Domain" value="<?= $project['domain_name'] ?? '' ?>"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                            
+                            <input type="email" name="client_email" placeholder="Email" value="<?= $project['client_email'] ?? '' ?>"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                            
+                            <input type="text" name="client_mobile" placeholder="Mobile" value="<?= $project['client_mobile'] ?? '' ?>"
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                        </div>
 
-                            <option value="Paid" <?= ($project['payment_status'] == 'Paid') ? 'selected' : '' ?>>
-                                Paid
-                            </option>
-
-                        </select>
+                        <div class="grid grid-cols-3 gap-3">
+                            <input type="text" name="city" placeholder="City" value="<?= $project['city'] ?? '' ?>" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none">
+                            <input type="text" name="state" placeholder="State" value="<?= $project['state'] ?? '' ?>" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none">
+                            <input type="text" name="pincode" placeholder="Pin" value="<?= $project['pincode'] ?? '' ?>" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none">
+                        </div>
                     </div>
 
+                    <div class="space-y-4 pt-4">
+                        <div class="flex items-center space-x-2 pb-2 border-b border-slate-100">
+                            <i data-lucide="credit-card" class="w-4 h-4 text-blue-500"></i>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Billing Details</span>
+                        </div>
 
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center space-x-2">
-                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                        <span>Update Project</span>
-                    </button>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Total Project Amount (₹)</label>
+                                <input type="number" step="0.01" name="project_amount" id="total_amt" value="<?= $project['project_amount'] ?? 0 ?>"
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none font-bold text-slate-700">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Amount Paid (₹)</label>
+                                <input type="number" step="0.01" name="paid_amount" id="paid_amt" value="<?= $project['paid_amount'] ?? 0 ?>"
+                                       class="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl px-4 py-3 text-sm input-focus outline-none font-bold text-emerald-600">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 rounded-2xl p-5 flex justify-between items-center shadow-lg shadow-slate-200">
+                            <div>
+                                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Balance Pending</p>
+                                <h4 id="pending_display" class="text-2xl font-bold text-white tracking-tight">₹0.00</h4>
+                            </div>
+                            <div class="bg-white/10 p-3 rounded-xl">
+                                <i data-lucide="wallet" class="w-6 h-6 text-blue-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-5 rounded-[1.5rem] font-bold shadow-xl shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center space-x-3 text-lg">
+                            <i data-lucide="save" class="w-6 h-6"></i>
+                            <span>Sync & Save Updates</span>
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -290,6 +288,38 @@ WHERE id=$id AND staff_id=$staff_id
 
 <script>
     lucide.createIcons();
+
+    // Responsive Sidebar Toggle
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('hidden');
+        sidebar.classList.toggle('flex');
+        sidebar.classList.toggle('absolute');
+        sidebar.classList.toggle('h-full');
+    }
+
+    // Real-time Calculation
+    const totalInput = document.getElementById('total_amt');
+    const paidInput = document.getElementById('paid_amt');
+    const pendingDisplay = document.getElementById('pending_display');
+
+    function calculatePending() {
+        const total = parseFloat(totalInput.value) || 0;
+        const paid = parseFloat(paidInput.value) || 0;
+        const pending = total - paid;
+        pendingDisplay.innerText = '₹' + pending.toLocaleString('en-IN', {minimumFractionDigits: 2});
+        
+        // Change color to red if there is a pending balance
+        if(pending > 0) {
+            pendingDisplay.classList.add('text-orange-400');
+        } else {
+            pendingDisplay.classList.remove('text-orange-400');
+        }
+    }
+
+    totalInput.addEventListener('input', calculatePending);
+    paidInput.addEventListener('input', calculatePending);
+    window.onload = calculatePending; // Initial calc on load
 </script>
 
 </body>

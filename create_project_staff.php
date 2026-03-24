@@ -65,7 +65,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .form-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(226, 232, 240, 0.8);
         }
@@ -76,7 +76,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
             border-color: #2563eb;
         }
-        /* Hide scrollbar while keeping functionality */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -86,14 +85,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 <div class="flex h-screen overflow-hidden">
 
-    <aside class="w-72 bg-slate-950 text-white hidden md:flex flex-col border-r border-slate-800">
-        <div class="p-8">
+    <aside id="sidebar" class="w-72 bg-slate-950 text-white hidden md:flex flex-col border-r border-slate-800 transition-all duration-300 z-50">
+        <div class="p-8 flex items-center justify-between">
             <div class="flex items-center space-x-3 group cursor-default">
                 <div class="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
                     <i data-lucide="layers" class="w-6 h-6 text-white"></i>
                 </div>
                 <span class="text-xl font-bold tracking-tight text-white">Billing Pro</span>
             </div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i data-lucide="x"></i></button>
         </div>
 
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar">
@@ -119,98 +119,101 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 </a>
             </div>
         </nav>
-
-        <div class="p-6">
-            <div class="bg-slate-900/50 rounded-2xl p-4 border border-slate-800">
-                <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Status</p>
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span class="text-xs text-slate-300 font-medium">System Online</span>
-                </div>
-            </div>
-        </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 px-10 py-6 sticky top-0 z-20 flex justify-between items-center">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">Launch Project</h2>
-                <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Staff Initiation / Project Tracking</p>
+        <header class="bg-white border-b border-slate-200 px-6 md:px-10 py-6 sticky top-0 z-20 flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <button onclick="toggleSidebar()" class="md:hidden p-2 bg-slate-100 rounded-lg text-slate-600">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800">Launch Project</h2>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Initiation Portal</p>
+                </div>
             </div>
         </header>
 
-        <div class="p-10 flex justify-center pt-2">
-            <div class="form-card w-full max-w-xl rounded-3xl shadow-xl overflow-hidden p-8">
-                <div class="mb-2 flex items-center space-x-4">
-                    <div class="bg-blue-50 p-3 rounded-2xl">
+        <div class="p-4 md:p-10 flex justify-center">
+            <div class="form-card w-full max-w-2xl rounded-[2rem] shadow-2xl shadow-slate-200/50 overflow-hidden p-6 md:p-10 mb-10">
+                
+                <div class="mb-8 flex items-center space-x-4">
+                    <div class="bg-blue-50 p-3.5 rounded-2xl">
                         <i data-lucide="rocket" class="w-6 h-6 text-blue-600"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800">Project Details</h3>
-                        <p class="text-xs text-slate-400">Add a name and description to get started</p>
+                        <h3 class="text-lg font-bold text-slate-800">New Project Setup</h3>
+                        <p class="text-xs text-slate-400">Enter details to begin tracking and billing</p>
                     </div>
                 </div>
 
-                <form method="POST" class="space-y-4 ">
+                <form method="POST" class="space-y-6">
                     
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Project Name</label>
-                        <input type="text" name="project_name" placeholder="e.g. Website Redesign" 
-                               class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none" 
-                               required>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Project Name</label>
+                            <input type="text" name="project_name" placeholder="e.g. Corporate Website Redesign" 
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm input-focus outline-none" 
+                                   required>
+                        </div>
 
-                    <div>
-                        <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Description</label>
-                        <textarea name="description" placeholder="Briefly explain the project scope..." rows="4"
-                                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none"></textarea>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold">Project Amount</label>
-                        <input type="number" step="0.01" name="project_amount"
-                            class="w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm">
-                    </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Description</label>
+                            <textarea name="description" placeholder="Scope of work and key milestones..." rows="3"
+                                      class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm input-focus outline-none"></textarea>
+                        </div>
 
-                    <!-- CLIENT DETAILS -->
-                    <div class="pt-4 border-t border-slate-200">
-                        <h3 class="text-sm font-bold text-slate-700 mb-4">Client Information</h3>
-
-                        <div class="space-y-4">
-
-                            <input type="text" name="client_name" placeholder="Client Name"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
-
-                            <input type="text" name="domain_name" placeholder="Domain Name (e.g. example.com)"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
-
-                            <input type="email" name="client_email" placeholder="Client Email"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
-
-                            <input type="text" name="client_mobile" placeholder="Mobile Number"
-                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
-
-                            <textarea name="address" placeholder="Full Address"
-                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none"></textarea>
-
-                            <div class="grid grid-cols-3 gap-3">
-                                <input type="text" name="city" placeholder="City"
-                                    class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
-
-                                <input type="text" name="state" placeholder="State"
-                                    class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
-
-                                <input type="text" name="pincode" placeholder="Pincode"
-                                    class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm">
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">Project Amount (INR)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                <input type="number" step="0.01" name="project_amount" placeholder="0.00"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-sm input-focus outline-none font-semibold text-blue-600">
                             </div>
-
-
                         </div>
                     </div>
 
-                    <div class="pt-4">
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center space-x-2">
-                            <i data-lucide="plus" class="w-5 h-5"></i>
-                            <span>Create Project</span>
+                    <div class="pt-8 border-t border-slate-100">
+                        <div class="flex items-center space-x-2 mb-6">
+                            <i data-lucide="user-check" class="w-4 h-4 text-blue-600"></i>
+                            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-tight">Client Contact Information</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <input type="text" name="client_name" placeholder="Contact Person Name"
+                                     class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                            </div>
+
+                            <input type="text" name="domain_name" placeholder="Domain (e.g. client.com)"
+                                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+
+                            <input type="email" name="client_email" placeholder="Email Address"
+                                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+
+                            <input type="text" name="client_mobile" placeholder="Mobile / WhatsApp"
+                                 class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+
+                            <input type="text" name="pincode" placeholder="Pincode"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+
+                            <div class="md:col-span-2">
+                                <textarea name="address" placeholder="Physical / Billing Address" rows="2"
+                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none"></textarea>
+                            </div>
+
+                            <input type="text" name="city" placeholder="City"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+
+                            <input type="text" name="state" placeholder="State"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+                        </div>
+                    </div>
+
+                    <div class="pt-6">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-4 rounded-2xl font-bold shadow-xl shadow-blue-500/30 transition-all active:scale-[0.98] flex items-center justify-center space-x-3">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                            <span>Initialize Project</span>
                         </button>
                     </div>
 
@@ -222,6 +225,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
 <script>
     lucide.createIcons();
+
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('hidden');
+        sidebar.classList.toggle('flex');
+        sidebar.classList.toggle('absolute');
+        sidebar.classList.toggle('h-full');
+    }
 </script>
 
 </body>
