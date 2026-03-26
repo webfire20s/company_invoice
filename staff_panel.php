@@ -14,7 +14,7 @@ $staff_id = $_SESSION['staff_id'];
 $result = $conn->query("
 SELECT project_name, progress, id,
 client_name, domain_name, client_email, client_mobile, city,
-notes
+notes , created_at
 FROM projects 
 WHERE staff_id = $staff_id
 ORDER BY id DESC
@@ -215,6 +215,7 @@ AND YEAR(created_at) = $year
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400">Project Details</th>
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400">Client Contacts</th>
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400">Internal Notes</th>
+                                <th class="px-8 py-5 text-[11px] font-bold uppercase text-slate-400">Created</th>
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -242,6 +243,11 @@ AND YEAR(created_at) = $year
                                     <div class="text-[11px] text-slate-500 max-w-[200px] leading-relaxed italic bg-slate-50/50 p-2 rounded-lg border border-dashed">
                                         <?= !empty($row['notes']) ? $row['notes'] : 'No updates recorded' ?>
                                     </div>
+                                </td>
+                                <td class="px-8 py-5 text-xs text-slate-500">
+                                    <?= !empty($row['created_at']) 
+                                    ? date('d M Y', strtotime($row['created_at'])) 
+                                    : 'N/A' ?>
                                 </td>
 
                                 <td class="px-8 py-6 text-right">

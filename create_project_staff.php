@@ -21,16 +21,29 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $city          = $_POST['city'] ?? '';
     $state         = $_POST['state'] ?? '';
     $pincode       = $_POST['pincode'] ?? '';
-    $project_amount = $_POST['project_amount'] ?? '';
+    $project_amount = (float) ($_POST['project_amount'] ?? 0);
+    $paid_amount    = (float) ($_POST['paid_amount'] ?? 0);
+
+    /* AUTO CALCULATIONS */
+    $pending_amount = $project_amount - $paid_amount;
+
+    if($pending_amount <= 0){
+        $pending_amount = 0;
+        $payment_status = 'Paid';
+    } elseif($paid_amount > 0){
+        $payment_status = 'Partial';
+    } else {
+        $payment_status = 'Pending';
+    }
 
     $stmt = $conn->prepare("
     INSERT INTO projects 
-    (project_name, description, staff_id, client_name, domain_name, client_email, client_mobile, address, city, state, pincode, project_amount) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (project_name, description, staff_id, client_name, domain_name, client_email, client_mobile, address, city, state, pincode, project_amount, paid_amount, pending_amount, payment_status) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-    "ssissssssssd",
+    "ssissssssssdddd",
     $name,
     $desc,
     $staff_id,
@@ -42,7 +55,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $city,
     $state,
     $pincode,
-    $project_amount
+    $project_amount,
+    $paid_amount,
+    $pending_amount,
+    $payment_status
     );
     $stmt->execute();
 
@@ -170,6 +186,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                 <input type="number" step="0.01" name="project_amount" placeholder="0.00"
                                     class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-sm input-focus outline-none font-semibold text-blue-600">
                             </div>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">
+                                Paid Amount (Initial Payment)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                <input type="number" step="0.01" name="paid_amount" placeholder="0.00"
+                                    class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-sm input-focus outline-none font-semibold text-green-600">
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">
+                                Leave 0 if no payment received yet
+                            </p>
                         </div>
                     </div>
 
