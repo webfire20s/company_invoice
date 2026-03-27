@@ -48,6 +48,15 @@ WHERE staff_id = $staff_id
 AND MONTH(created_at) = $month 
 AND YEAR(created_at) = $year    
 ")->fetch_assoc()['total'] ?? 0;
+
+/* TOTAL domain amount */
+$total_domain = $conn->query("
+SELECT SUM(domain_amount) as total 
+FROM projects 
+WHERE staff_id = $staff_id 
+AND MONTH(created_at) = $month 
+AND YEAR(created_at) = $year
+")->fetch_assoc()['total'] ?? 0;
 ?>
 
 <!DOCTYPE html>
@@ -147,7 +156,7 @@ AND YEAR(created_at) = $year
 
         <div class="p-6 md:p-10 space-y-8">
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white rounded-3xl shadow-sm p-6 border border-slate-100 stat-card flex items-center justify-between">
                     <div>
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Projects</p>
@@ -170,6 +179,14 @@ AND YEAR(created_at) = $year
                         <h2 class="text-3xl font-bold text-red-500">₹<?= number_format($total_pending,0) ?></h2>
                     </div>
                     <div class="bg-red-50 p-3 rounded-2xl text-red-500"><i data-lucide="clock-alert" class="w-6 h-6"></i></div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm p-6 border border-slate-100 stat-card flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Domain Amount</p>
+                        <h2 class="text-3xl font-bold text-emerald-600">₹<?= number_format($total_domain,0) ?></h2>
+                    </div>
+                    <div class="bg-emerald-50 p-3 rounded-2xl text-emerald-600"><i data-lucide="banknote" class="w-6 h-6"></i></div>
                 </div>
             </div>
 
@@ -214,6 +231,7 @@ AND YEAR(created_at) = $year
                             <tr class="bg-slate-50 border-b border-slate-100">
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400">Project Details</th>
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400">Client Contacts</th>
+                                <!-- <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400">Domain ₹</th> -->
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400">Internal Notes</th>
                                 <th class="px-8 py-5 text-[11px] font-bold uppercase text-slate-400">Created</th>
                                 <th class="px-8 py-5 text-[10px] font-bold uppercase text-slate-400 text-right">Actions</th>
@@ -238,6 +256,10 @@ AND YEAR(created_at) = $year
                                         <span class="text-[10px] text-slate-500 font-bold tracking-tight italic"><?= $row['client_mobile'] ?? '' ?></span>
                                     </div>
                                 </td>
+
+                                <!-- <td class="px-8 py-5">
+                                    ₹<?= number_format($row['domain_amount'] ?? 0, 2) ?>
+                                </td> -->
 
                                 <td class="px-8 py-6">
                                     <div class="text-[11px] text-slate-500 max-w-[200px] leading-relaxed italic bg-slate-50/50 p-2 rounded-lg border border-dashed">

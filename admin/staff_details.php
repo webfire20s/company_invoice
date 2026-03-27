@@ -51,6 +51,15 @@ AND MONTH(created_at) = $month
 AND YEAR(created_at) = $year
 ")->fetch_assoc()['total'] ?? 0;
 
+/* TOTAL domain amount */
+$total_domain = $conn->query("
+SELECT SUM(domain_amount) as total 
+FROM projects 
+WHERE staff_id = $staff_id 
+AND MONTH(created_at) = $month 
+AND YEAR(created_at) = $year
+")->fetch_assoc()['total'] ?? 0;
+
 /* ALL PROJECTS OF STAFF */
 $projects = $conn->query("
 SELECT 
@@ -128,7 +137,7 @@ ORDER BY created_at DESC
         </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-6">
 
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-200 transition-colors group">
             <div class="flex items-center justify-between mb-4">
@@ -178,6 +187,18 @@ ORDER BY created_at DESC
             </h2>
         </div>
 
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:border-emerald-200 transition-colors group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-emerald-50 rounded-lg group-hover:bg-emerald-600 transition-colors">
+                    <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600 group-hover:text-white"></i>
+                </div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Domain Amount</p>
+            </div>
+            <h2 class="text-3xl font-black text-emerald-600">
+                ₹<?= number_format($total_domain, 0) ?>
+            </h2>
+        </div>
+
     </div>
 
     <div class="mt-10 bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
@@ -217,7 +238,10 @@ ORDER BY created_at DESC
                                 <div class="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors uppercase tracking-tight">
                                     <?= htmlspecialchars($row['project_name']) ?>
                                 </div>
-                                <div class="text-[10px] text-slate-400 font-medium mt-1">Assigned on <?= date('d M, Y') ?></div>
+                                <div class="text-[10px] text-slate-400 font-medium mt-1">Assigned on <?= !empty($row['created_at']) 
+                                    ? date('d M Y', strtotime($row['created_at'])) 
+                                    : 'N/A' ?>
+                                </div>
                             </td>
 
                             <td class="px-8 py-6">

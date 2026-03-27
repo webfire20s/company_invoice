@@ -30,6 +30,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     $project_amount = (float) $_POST['project_amount'];
     $paid_amount = isset($_POST['paid_amount']) ? (float) $_POST['paid_amount'] : 0;
+    $domain_amount =  (float) ($_POST['domain_amount'] ?? 0);
 
     // 🔥 AUTO CALCULATE PENDING
     $pending_amount = $project_amount - $paid_amount;
@@ -54,13 +55,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             progress=?,
             project_amount=?,
             paid_amount=?,
+            domain_amount=?,
             pending_amount=?,
             payment_status=?
         WHERE id=? AND staff_id=?
     ");
 
     $stmt->bind_param(
-        "sssssssssssiddsdii",
+        "sssssssssssidddsdii",
         $name,
         $desc,
         $client_name,
@@ -75,6 +77,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         $progress,
         $project_amount,
         $paid_amount,
+        $domain_amount,
         $pending_amount,
         $status,
         $id,
@@ -253,6 +256,11 @@ WHERE id=$id AND staff_id=$staff_id
                             <div>
                                 <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Total Project Amount (₹)</label>
                                 <input type="number" step="0.01" name="project_amount" id="total_amt" value="<?= $project['project_amount'] ?? 0 ?>"
+                                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none font-bold text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2">Domain Amount (₹)</label>
+                                <input type="number" step="0.01" name="domain_amount" id="total_amt" value="<?= $project['domain_amount'] ?? 0 ?>"
                                        class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none font-bold text-slate-700">
                             </div>
 
