@@ -125,6 +125,18 @@ require 'auth.php';
         </header>
 
         <div class="p-4 md:p-10 max-w-5xl mx-auto w-full">
+            <<div class="mb-4 relative">
+                <label class="text-xs font-bold text-slate-500">Search Client</label>
+
+                <input type="text" id="client_search"
+                    placeholder="Type name or ID..."
+                    class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm">
+
+                <!-- Dropdown -->
+                <div id="client_results"
+                    class="absolute bg-white border w-full mt-1 rounded-xl shadow hidden z-50 max-h-40 overflow-y-auto">
+                </div>
+            </div>
             <div class="form-card rounded-2xl md:rounded-3xl shadow-xl overflow-hidden">
                 <form method="POST" action="../generate_quotation.php" class="divide-y divide-slate-100">
 
@@ -215,6 +227,69 @@ require 'auth.php';
     }
     document.getElementById('sidebarOverlay').addEventListener('click', toggleSidebar);
 </script>
+<script>
+const searchInput = document.getElementById('client_search');
+const resultsBox = document.getElementById('client_results');
 
+searchInput.addEventListener('input', function(){
+    let query = this.value;
+
+    if(query.length < 2){
+        resultsBox.classList.add('hidden');
+        return;
+    }
+
+    fetch('../get_client.php?q=' + query)
+    .then(res => res.json())
+    .then(data => {
+
+        resultsBox.innerHTML = '';
+
+        if(data.length === 0){
+            resultsBox.classList.add('hidden');
+            return;
+        }
+
+        data.forEach(client => {
+
+            let div = document.createElement('div');
+            div.className = "p-3 hover:bg-slate-100 cursor-pointer text-sm";
+            div.innerHTML = `<strong>${client.client_name}</strong> (${client.mobile})`;
+
+            div.onclick = () => {
+                document.querySelector('[name="client_name"]').value = client.client_name;
+                document.querySelector('[name="client_email"]').value = client.email;
+                document.querySelector('[name="client_mobile"]').value = client.mobile;
+                document.querySelector('[name="address"]').value = client.address;
+                document.querySelector('[name="city"]').value = client.city;
+                document.querySelector('[name="state"]').value = client.state;
+                document.querySelector('[name="pincode"]').value = client.pincode;
+
+                resultsBox.classList.add('hidden');
+                resultsBox.innerHTML = '';
+                searchInput.blur();
+            };
+
+            resultsBox.appendChild(div);
+        });
+
+        resultsBox.classList.remove('hidden');
+    });
+});
+
+// Hide on outside click
+document.addEventListener('click', function(e){
+    if(!searchInput.contains(e.target) && !resultsBox.contains(e.target)){
+        resultsBox.classList.add('hidden');
+    }
+});
+
+// Hide on blur
+searchInput.addEventListener('blur', function(){
+    setTimeout(() => {
+        resultsBox.classList.add('hidden');
+    }, 150);
+});
+</script>
 </body>
 </html>

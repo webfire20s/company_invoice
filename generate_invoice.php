@@ -1,10 +1,51 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 require 'amount_in_words.php';
+require 'config.php';
 $date = date("Y-m-d");
 
 use Dompdf\Dompdf;
 
+
+
+$client_name   = $_POST['client_name'] ?? '';
+$client_email  = $_POST['client_email'] ?? '';
+$client_mobile = $_POST['client_mobile'] ?? '';
+$address       = $_POST['client_address'] ?? '';
+$city          = $_POST['city'] ?? '';
+$state         = $_POST['state'] ?? '';
+$pincode       = $_POST['pincode'] ?? '';
+// CHECK IF CLIENT EXISTS
+$check = $conn->query("
+SELECT id FROM clients 
+WHERE client_name = '$client_name' 
+AND mobile = '$client_mobile'
+");
+
+if($check->num_rows == 0){
+
+    $client_code = 'CLT' . date('Y') . rand(1000,9999);
+
+    $stmt = $conn->prepare("
+    INSERT INTO clients 
+    (client_code, client_name, email, mobile, address, city, state, pincode)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param(
+        "ssssssss",
+        $client_code,
+        $client_name,
+        $client_email,
+        $client_mobile,
+        $address,
+        $city,
+        $state,
+        $pincode
+    );
+
+    $stmt->execute();
+}
 /* ================= INPUT ================= */
 
 $client_name    = $_POST['client_name'] ?? '';

@@ -9,6 +9,45 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'staff') {
 
 $staff_id = $_SESSION['staff_id'];
 
+$client_name   = $_POST['client_name'] ?? '';
+$client_email  = $_POST['client_email'] ?? '';
+$client_mobile = $_POST['client_mobile'] ?? '';
+$address       = $_POST['address'] ?? '';
+$city          = $_POST['city'] ?? '';
+$state         = $_POST['state'] ?? '';
+$pincode       = $_POST['pincode'] ?? '';
+// CHECK IF CLIENT EXISTS
+$check = $conn->query("
+SELECT id FROM clients 
+WHERE client_name = '$client_name' 
+AND mobile = '$client_mobile'
+");
+
+if($check->num_rows == 0){
+
+    $client_code = 'CLT' . date('Y') . rand(1000,9999);
+
+    $stmt = $conn->prepare("
+    INSERT INTO clients 
+    (client_code, client_name, email, mobile, address, city, state, pincode)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param(
+        "ssssssss",
+        $client_code,
+        $client_name,
+        $client_email,
+        $client_mobile,
+        $address,
+        $city,
+        $state,
+        $pincode
+    );
+
+    $stmt->execute();
+}
+
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $name = $_POST['project_name'];
     $desc = $_POST['description'];
@@ -220,6 +259,20 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                             <i data-lucide="user-check" class="w-4 h-4 text-blue-600"></i>
                             <h3 class="text-sm font-bold text-slate-700 uppercase tracking-tight">Client Contact Information</h3>
                         </div>
+                        <div class="mb-6 relative">
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">
+                                Search Existing Client
+                            </label>
+
+                            <input type="text" id="client_search"
+                                placeholder="Type client name or ID..."
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm input-focus outline-none">
+
+                            <!-- Dropdown -->
+                            <div id="client_results"
+                                class="absolute bg-white border border-slate-200 w-full mt-1 rounded-xl shadow hidden z-50 max-h-48 overflow-y-auto">
+                            </div>
+                        </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="md:col-span-2">
@@ -276,6 +329,70 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         sidebar.classList.toggle('h-full');
     }
 </script>
+<script>
+const searchInput = document.getElementById('client_search');
+const resultsBox = document.getElementById('client_results');
 
+searchInput.addEventListener('input', function(){
+    let query = this.value;
+
+    if(query.length < 2){
+        resultsBox.classList.add('hidden');
+        return;
+    }
+
+    fetch('get_client.php?q=' + query)
+    .then(res => res.json())
+    .then(data => {
+
+        resultsBox.innerHTML = '';
+
+        if(data.length === 0){
+            resultsBox.classList.add('hidden');
+            return;
+        }
+
+        data.forEach(client => {
+
+            let div = document.createElement('div');
+            div.className = "p-3 hover:bg-slate-100 cursor-pointer text-sm";
+            div.innerHTML = `<strong>${client.client_name}</strong> (${client.mobile})`;
+
+            div.onclick = () => {
+
+                document.querySelector('[name="client_name"]').value = client.client_name;
+                document.querySelector('[name="client_email"]').value = client.email;
+                document.querySelector('[name="client_mobile"]').value = client.mobile;
+                document.querySelector('[name="address"]').value = client.address;
+                document.querySelector('[name="city"]').value = client.city;
+                document.querySelector('[name="state"]').value = client.state;
+                document.querySelector('[name="pincode"]').value = client.pincode;
+
+                resultsBox.classList.add('hidden');
+                resultsBox.innerHTML = '';
+                searchInput.blur();
+            };
+
+            resultsBox.appendChild(div);
+        });
+
+        resultsBox.classList.remove('hidden');
+    });
+});
+
+// Hide on outside click
+document.addEventListener('click', function(e){
+    if(!searchInput.contains(e.target) && !resultsBox.contains(e.target)){
+        resultsBox.classList.add('hidden');
+    }
+});
+
+// Hide on blur
+searchInput.addEventListener('blur', function(){
+    setTimeout(() => {
+        resultsBox.classList.add('hidden');
+    }, 150);
+});
+</script>
 </body>
 </html>
