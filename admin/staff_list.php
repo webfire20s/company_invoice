@@ -70,6 +70,10 @@ $result = $conn->query("SELECT * FROM staff ORDER BY id DESC");
                 <span class="font-medium">Dashboard</span>
             </a>
 
+            <a href="expenses.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
+                <i data-lucide="wallet"></i><span>Expenses</span>
+            </a>
+
             <a href="invoice_form.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
                 <i data-lucide="file-plus" class="w-5 h-5"></i>
                 <span class="font-medium">Create Invoice</span>
@@ -95,10 +99,10 @@ $result = $conn->query("SELECT * FROM staff ORDER BY id DESC");
                 <span class="font-medium">Create Project</span>
             </a>
 
-            <a href="projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
+            <!-- <a href="projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
                 <i data-lucide="folder" class="w-5 h-5"></i>
                 <span class="font-medium">Projects</span>
-            </a>
+            </a> -->
 
             <div class="pt-8 mt-8 border-t border-slate-900">
                 <a href="logout.php" class="flex items-center space-x-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all duration-200">
@@ -133,6 +137,7 @@ $result = $conn->query("SELECT * FROM staff ORDER BY id DESC");
                     <table class="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-500">Staff ID</th>
                                 <th class="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-500">Team Member</th>
                                 <th class="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-500">Contact Details</th>
                                 <th class="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-500 text-right">Status</th>
@@ -142,6 +147,11 @@ $result = $conn->query("SELECT * FROM staff ORDER BY id DESC");
                             <?php while($row = $result->fetch_assoc()): ?>
                             <tr onclick="window.location='staff_details.php?id=<?= $row['id'] ?>'"
                                 class="transition-colors cursor-pointer hover:bg-slate-50">
+                                <td class="px-8 py-5">
+                                    <span class="text-xs font-bold text-blue-600">
+                                        <?= $row['staff_code'] ?? 'N/A' ?>
+                                    </span>
+                                </td>
                                 <td class="px-8 py-5">
                                     <div class="flex items-center space-x-4">
                                         <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm border border-slate-200 shrink-0">

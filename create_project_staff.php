@@ -130,7 +130,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             </a>
 
             <div class="pt-8 mt-8 border-t border-slate-900">
-                <a href="logout.php" 
+                <a href="admin/logout.php" 
                 class="flex items-center space-x-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all duration-200">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
                     <span class="font-medium">Logout</span>

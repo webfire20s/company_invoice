@@ -80,6 +80,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <span class="font-medium">Dashboard</span>
             </a>
 
+            <a href="expenses.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
+                <i data-lucide="wallet"></i><span>Expenses</span>
+            </a>
+
             <a href="invoice_form.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
                 <i data-lucide="file-plus" class="w-5 h-5"></i>
                 <span class="font-medium">Create Invoice</span>
@@ -100,15 +104,15 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <span>Staff List</span>
             </a>
 
-            <a href="create_project.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+            <a href="create_project.php" class="flex items-center space-x-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-lg">
                 <i data-lucide="folder-plus" class="w-5 h-5"></i>
                 <span>Create Project</span>
             </a>
 
-            <a href="projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+            <!-- <a href="projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
                 <i data-lucide="folder" class="w-5 h-5"></i>
                 <span>Projects</span>
-            </a>
+            </a> -->
 
             <div class="pt-8 mt-8 border-t border-slate-900">
                 <a href="logout.php" class="flex items-center space-x-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all duration-200">

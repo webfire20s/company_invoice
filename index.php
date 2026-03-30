@@ -64,7 +64,7 @@ $pending = $q4->fetch_assoc()['pending'] ?? 0;
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
             <p class="px-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-4">Main Menu</p>
             
-            <a href="index.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
+            <a href="index.php" class="flex items-center space-x-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-lg">
                 <i data-lucide="house" class="w-5 h-5"></i>
                 <span class="font-medium">Home</span>
             </a>
@@ -72,6 +72,10 @@ $pending = $q4->fetch_assoc()['pending'] ?? 0;
             <a href="admin/dashboard.php" class="flex items-center space-x-3 <?php echo (basename($_SERVER['PHP_SELF']) == 'dashboard.php') ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-900 hover:text-white'; ?> px-4 py-3 rounded-xl transition-all duration-200">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 <span class="font-medium">Dashboard</span>
+            </a>
+
+            <a href="admin/expenses.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
+                <i data-lucide="wallet"></i><span>Expenses</span>
             </a>
 
             <a href="admin/invoice_form.php" class="flex items-center space-x-3 <?php echo (basename($_SERVER['PHP_SELF']) == 'invoice_form.php') ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-900 hover:text-white'; ?> px-4 py-3 rounded-xl">
@@ -99,10 +103,10 @@ $pending = $q4->fetch_assoc()['pending'] ?? 0;
                 <span>Create Project</span>
             </a>
 
-            <a href="admin/projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+            <!-- <a href="admin/projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
                 <i data-lucide="folder" class="w-5 h-5"></i>
                 <span>Projects</span>
-            </a>
+            </a> -->
 
             <div class="pt-8 mt-8 border-t border-slate-900">
                 <a href="admin/logout.php" class="flex items-center space-x-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all duration-200">

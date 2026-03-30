@@ -6,9 +6,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $name = $_POST['name'];
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $staff_code = 'STF' . date('Y') . rand(1000,9999);
 
-    $stmt = $conn->prepare("INSERT INTO staff (name,email,password) VALUES (?,?,?)");
-    $stmt->bind_param("sss",$name,$email,$password);
+    $stmt = $conn->prepare("INSERT INTO staff (staff_code,name,email,password) VALUES (?,?,?)");
+    $stmt->bind_param("ssss",$staff_code,$name,$email,$password);
     $stmt->execute();
 
     header("Location: staff_list.php");
@@ -85,6 +86,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <span class="font-medium">Dashboard</span>
             </a>
 
+            <a href="expenses.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
+                <i data-lucide="wallet"></i><span>Expenses</span>
+            </a>
+
             <a href="invoice_form.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-900 hover:text-white px-4 py-3 rounded-xl transition-all duration-200">
                 <i data-lucide="file-plus" class="w-5 h-5"></i>
                 <span class="font-medium">Create Invoice</span>
@@ -95,7 +100,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <span class="font-medium">Create Quotation</span>
             </a>
 
-            <a href="create_staff.php" class="flex items-center space-x-3 bg-blue-600 text-white shadow-lg shadow-blue-900/20 px-4 py-3 rounded-xl transition-all duration-200">
+            <a href="create_staff.php" class="flex items-center space-x-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-lg">
                 <i data-lucide="user-plus" class="w-5 h-5"></i>
                 <span class="font-medium">Create Staff</span>
             </a>
@@ -110,10 +115,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <span class="font-medium">Create Project</span>
             </a>
 
-            <a href="projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
+            <!-- <a href="projects_list.php" class="flex items-center space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl">
                 <i data-lucide="folder" class="w-5 h-5"></i>
                 <span class="font-medium">Projects</span>
-            </a>
+            </a> -->
 
             <div class="pt-8 mt-8 border-t border-slate-900">
                 <a href="logout.php" class="flex items-center space-x-3 text-red-400 hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all duration-200">
