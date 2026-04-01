@@ -17,8 +17,7 @@ $month = date('m');
 $year  = date('Y');
 
 /* SMART DATE COLUMN (FIX) */
-$date_column = "COALESCE(project_date, created_at)";
-
+$date_column = "DATE(COALESCE(project_date, created_at))";
 /* ===== KPI QUERIES (FIXED) ===== */
 
 /* TOTAL PROJECTS */
@@ -92,7 +91,7 @@ SELECT
     pending_amount,
     payment_status,
     notes,
-    COALESCE(project_date, created_at) as created_at
+    DATE(COALESCE(project_date, created_at)) as created_at
 FROM projects
 WHERE staff_id = $staff_id
 ORDER BY COALESCE(project_date, created_at) DESC
