@@ -63,6 +63,9 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $project_amount = (float) ($_POST['project_amount'] ?? 0);
     $paid_amount    = (float) ($_POST['paid_amount'] ?? 0);
     $domain_amount =  (float) ($_POST['domain_amount'] ?? 0);
+    $created_at = !empty($_POST['created_at']) 
+    ? $_POST['created_at'] . " " . date('H:i:s') 
+    : date('Y-m-d H:i:s');
 
     /* AUTO CALCULATIONS */
     $pending_amount = $project_amount - $paid_amount;
@@ -78,12 +81,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     $stmt = $conn->prepare("
     INSERT INTO projects 
-    (project_name, description, staff_id, client_name, domain_name, client_email, client_mobile, address, city, state, pincode, project_amount, paid_amount, pending_amount, payment_status, domain_amount) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (project_name, description, staff_id, client_name, domain_name, client_email, client_mobile, address, city, state, pincode, project_amount, paid_amount, pending_amount, payment_status, domain_amount,created_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
     $stmt->bind_param(
-    "ssissssssssddddd",
+    "ssissssssssddddds",
     $name,
     $desc,
     $staff_id,
@@ -99,7 +102,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $paid_amount,
     $pending_amount,
     $payment_status,
-    $domain_amount
+    $domain_amount,
+    $created_at
     );
     $stmt->execute();
 
@@ -227,6 +231,14 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                                 <input type="number" step="0.01" name="project_amount" placeholder="0.00"
                                     class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 py-3.5 text-sm input-focus outline-none font-semibold text-blue-600">
                             </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">
+                                Project Creation Date (Optional)
+                            </label>
+
+                            <input type="date" name="created_at"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm input-focus outline-none">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-2 px-1">

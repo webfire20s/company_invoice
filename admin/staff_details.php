@@ -12,55 +12,76 @@ $staff_id = (int) $_GET['id'];
 /* STAFF INFO */
 $staff = $conn->query("SELECT * FROM staff WHERE id=$staff_id")->fetch_assoc();
 
+/* DATE FILTER (CURRENT MONTH BY DEFAULT) */
 $month = date('m');
-$year = date('Y');
+$year  = date('Y');
 
-/* TOTAL PROJECTS (MONTH) */
-$total_projects = $conn->query("
+/* SMART DATE COLUMN (FIX) */
+$date_column = "COALESCE(project_date, created_at)";
+
+/* ===== KPI QUERIES (FIXED) ===== */
+
+/* TOTAL PROJECTS */
+$q1 = $conn->query("
 SELECT COUNT(*) as total 
 FROM projects 
 WHERE staff_id = $staff_id 
-AND MONTH(created_at) = $month 
-AND YEAR(created_at) = $year
-")->fetch_assoc()['total'];
+AND $date_column IS NOT NULL
+AND MONTH($date_column) = $month 
+AND YEAR($date_column) = $year
+");
+$row1 = $q1->fetch_assoc();
+$total_projects = $row1['total'] ?? 0;
 
 /* TOTAL VALUE */
-$total_value = $conn->query("
+$q2 = $conn->query("
 SELECT SUM(project_amount) as total 
 FROM projects 
 WHERE staff_id = $staff_id 
-AND MONTH(created_at) = $month 
-AND YEAR(created_at) = $year
-")->fetch_assoc()['total'] ?? 0;
+AND $date_column IS NOT NULL
+AND MONTH($date_column) = $month 
+AND YEAR($date_column) = $year
+");
+$row2 = $q2->fetch_assoc();
+$total_value = $row2['total'] ?? 0;
 
-/* TOTAL REVENUE (ACTUAL RECEIVED) */
-$total_revenue = $conn->query("
+/* TOTAL REVENUE */
+$q3 = $conn->query("
 SELECT SUM(paid_amount) as total 
 FROM projects 
 WHERE staff_id = $staff_id 
-AND MONTH(created_at) = $month 
-AND YEAR(created_at) = $year
-")->fetch_assoc()['total'] ?? 0;
+AND $date_column IS NOT NULL
+AND MONTH($date_column) = $month 
+AND YEAR($date_column) = $year
+");
+$row3 = $q3->fetch_assoc();
+$total_revenue = $row3['total'] ?? 0;
 
 /* TOTAL PENDING */
-$total_pending = $conn->query("
+$q4 = $conn->query("
 SELECT SUM(pending_amount) as total 
 FROM projects 
 WHERE staff_id = $staff_id 
-AND MONTH(created_at) = $month 
-AND YEAR(created_at) = $year
-")->fetch_assoc()['total'] ?? 0;
+AND $date_column IS NOT NULL
+AND MONTH($date_column) = $month 
+AND YEAR($date_column) = $year
+");
+$row4 = $q4->fetch_assoc();
+$total_pending = $row4['total'] ?? 0;
 
-/* TOTAL domain amount */
-$total_domain = $conn->query("
+/* TOTAL DOMAIN */
+$q5 = $conn->query("
 SELECT SUM(domain_amount) as total 
 FROM projects 
 WHERE staff_id = $staff_id 
-AND MONTH(created_at) = $month 
-AND YEAR(created_at) = $year
-")->fetch_assoc()['total'] ?? 0;
+AND $date_column IS NOT NULL
+AND MONTH($date_column) = $month 
+AND YEAR($date_column) = $year
+");
+$row5 = $q5->fetch_assoc();
+$total_domain = $row5['total'] ?? 0;
 
-/* ALL PROJECTS OF STAFF */
+/* ===== PROJECT LIST (ALSO FIXED SORTING) ===== */
 $projects = $conn->query("
 SELECT 
     project_name,
@@ -71,10 +92,10 @@ SELECT
     pending_amount,
     payment_status,
     notes,
-    created_at
+    COALESCE(project_date, created_at) as created_at
 FROM projects
 WHERE staff_id = $staff_id
-ORDER BY created_at DESC
+ORDER BY COALESCE(project_date, created_at) DESC
 ");
 ?>
 
