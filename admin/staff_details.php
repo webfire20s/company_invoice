@@ -13,8 +13,8 @@ $staff_id = (int) $_GET['id'];
 $staff = $conn->query("SELECT * FROM staff WHERE id=$staff_id")->fetch_assoc();
 
 /* DATE FILTER (CURRENT MONTH BY DEFAULT) */
-$month = date('m');
-$year  = date('Y');
+$month = isset($_GET['month']) ? (int)$_GET['month'] : date('m');
+$year  = isset($_GET['year'])  ? (int)$_GET['year']  : date('Y');
 
 /* SMART DATE COLUMN (FIX) */
 $date_column = "DATE(COALESCE(project_date, created_at))";
@@ -157,7 +157,61 @@ ORDER BY COALESCE(project_date, created_at) DESC
         </div>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-1 sm:gap-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between">
+
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-2 bg-blue-50 rounded-lg">
+                    <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
+                </div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Filter Data
+                </p>
+            </div>
+
+            <!-- Form -->
+            <form method="GET" class="flex flex-col gap-3">
+                
+                <input type="hidden" name="id" value="<?= $staff_id ?>">
+
+                <div class="flex gap-2">
+                    <!-- Month -->
+                    <select name="month" 
+                        class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <?php for($m = 1; $m <= 12; $m++): ?>
+                            <option value="<?= $m ?>" <?= ($m == $month) ? 'selected' : '' ?>>
+                                <?= date('M', mktime(0,0,0,$m,1)) ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+
+                    <!-- Year -->
+                    <select name="year" 
+                        class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <?php for($y = date('Y'); $y >= 2020; $y--): ?>
+                            <option value="<?= $y ?>" <?= ($y == $year) ? 'selected' : '' ?>>
+                                <?= $y ?>
+                            </option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-2">
+                    <button type="submit" 
+                        class="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition">
+                        Apply
+                    </button>
+
+                    <a href="staff_details.php?id=<?= $staff_id ?>" 
+                    class="w-full py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-xl text-center hover:bg-slate-200 transition">
+                    Reset
+                    </a>
+                </div>
+
+            </form>
+        </div>
 
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-200 transition-colors group">
             <div class="flex items-center justify-between mb-4">
