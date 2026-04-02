@@ -2,15 +2,78 @@
 require 'auth.php';
 require '../config.php';
 
-/* INSERT EXPENSES */
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
+/* ================= DELETE ================= */
+if(isset($_GET['delete'])){
+    $id = (int) $_GET['delete'];
+    $conn->query("DELETE FROM expenses WHERE id = $id");
+    header("Location: expenses.php");
+    exit;
+}
+
+/* ================= EXPORT CSV ================= */
+$where = "1";
+
+if(!empty($_GET['from']) && !empty($_GET['to'])){
+    $from = $_GET['from'];
+    $to   = $_GET['to'];
+    $where = "expense_date BETWEEN '$from' AND '$to'";
+}
+
+if(isset($_GET['export'])){
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="expenses.csv"');
+
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['Expense Name', 'Amount', 'Date']);
+
+    $rows = $conn->query("SELECT * FROM expenses WHERE $where");
+
+    while($r = $rows->fetch_assoc()){
+        fputcsv($output, [
+            $r['expense_name'],
+            $r['amount'],
+            $r['expense_date']
+        ]);
+    }
+
+    fclose($output);
+    exit;
+}
+
+/* ================= UPDATE ================= */
+if(isset($_POST['update_id'])){
+    $id     = (int) $_POST['update_id'];
+    $name   = $_POST['expense_name'];
+    $amount = $_POST['amount'];
+    $date   = $_POST['expense_date'];
+
+    $stmt = $conn->prepare("
+        UPDATE expenses 
+        SET expense_name=?, amount=?, expense_date=? 
+        WHERE id=?
+    ");
+    $stmt->bind_param("sdsi", $name, $amount, $date, $id);
+    $stmt->execute();
+
+    header("Location: expenses.php");
+    exit;
+}
+
+/* ================= INSERT ================= */
+if($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['update_id'])){
 
     $names   = $_POST['expense_name'] ?? [];
     $amounts = $_POST['amount'] ?? [];
     $dates   = $_POST['expense_date'] ?? [];
 
+    // 🔥 FIX: force arrays
+    $names   = is_array($names)   ? $names   : [$names];
+    $amounts = is_array($amounts) ? $amounts : [$amounts];
+    $dates   = is_array($dates)   ? $dates   : [$dates];
+
     for($i = 0; $i < count($names); $i++){
-        if(!empty($names[$i]) && !empty($amounts[$i]) && !empty($dates[$i])){
+        if(isset($names[$i], $amounts[$i], $dates[$i]) &&
+           !empty($names[$i]) && !empty($amounts[$i]) && !empty($dates[$i])){
 
             $stmt = $conn->prepare("
                 INSERT INTO expenses (expense_name, amount, expense_date)
@@ -24,32 +87,26 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     header("Location: expenses.php");
     exit;
 }
+/* ================= MONTH FILTER ================= */
+$month = isset($_GET['month']) ? (int)$_GET['month'] : date('m');
+$year  = isset($_GET['year'])  ? (int)$_GET['year']  : date('Y');
 
-/* FILTER */
-$where = "1";
-if(!empty($_GET['from']) && !empty($_GET['to'])){
-    $from = $_GET['from'];
-    $to   = $_GET['to'];
-    $where = "expense_date BETWEEN '$from' AND '$to'";
-}
-
-/* FETCH */
+/* COMMON CONDITION */
+$where = "MONTH(expense_date) = $month AND YEAR(expense_date) = $year";
+/* ================= FETCH ================= */
 $expenses = $conn->query("
 SELECT * FROM expenses
 WHERE $where
 ORDER BY expense_date DESC
 ");
 
-/* MONTHLY TOTAL */
-$month = date('m');
-$year  = date('Y');
-
+/* ================= KPI (NOW FILTER-BASED) ================= */
 $total_expense = $conn->query("
 SELECT SUM(amount) as total
 FROM expenses
-WHERE MONTH(expense_date) = $month
-AND YEAR(expense_date) = $year
+WHERE $where
 ")->fetch_assoc()['total'] ?? 0;
+
 ?>
 
 <!DOCTYPE html>
@@ -218,12 +275,66 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
 
             <!-- FILTER -->
             <div class="flex gap-4">
-                <form method="GET" class="flex gap-2">
-                    <input type="date" name="from" class="border rounded-lg p-2">
-                    <input type="date" name="to" class="border rounded-lg p-2">
-                    <button class="bg-blue-600 text-white px-4 rounded-lg">Filter</button>
+                <div class="bg-white p-6 rounded-2xl shadow border flex items-center justify-between">
+
+                    <div>
+                        <p class="text-xs text-slate-500">Selected Period</p>
+                        <h2 class="text-lg font-bold">
+                            <?= date('F Y', mktime(0,0,0,$month,1,$year)) ?>
+                        </h2>
+                    </div>
+
+                    <form method="GET" class="flex gap-2">
+
+                        <select name="month" class="border rounded-lg p-2 text-sm">
+                            <?php for($m = 1; $m <= 12; $m++): ?>
+                                <option value="<?= $m ?>" <?= ($m == $month) ? 'selected' : '' ?>>
+                                    <?= date('M', mktime(0,0,0,$m,1)) ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+
+                        <select name="year" class="border rounded-lg p-2 text-sm">
+                            <?php for($y = date('Y'); $y >= 2020; $y--): ?>
+                                <option value="<?= $y ?>" <?= ($y == $year) ? 'selected' : '' ?>>
+                                    <?= $y ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+
+                        <button class="bg-blue-600 text-white px-4 rounded-lg text-sm">
+                            Apply
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+            <a href="expenses.php?export=1&month=<?= $month ?>&year=<?= $year ?>" 
+                class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                Export CSV
+            </a>
+
+            <?php if(isset($_GET['edit'])): 
+                $edit_id = (int) $_GET['edit'];
+                $edit = $conn->query("SELECT * FROM expenses WHERE id=$edit_id")->fetch_assoc();
+            ?>
+
+            <div class="data-card p-6 rounded-2xl">
+                <h3 class="font-bold mb-4">Edit Expense</h3>
+
+                <form method="POST">
+                    <input type="hidden" name="update_id" value="<?= $edit['id'] ?>">
+
+                    <input type="text" name="expense_name" value="<?= $edit['expense_name'] ?>" class="border p-3 rounded-xl w-full mb-3">
+                    <input type="number" step="0.01" name="amount" value="<?= $edit['amount'] ?>" class="border p-3 rounded-xl w-full mb-3">
+                    <input type="date" name="expense_date" value="<?= $edit['expense_date'] ?>" class="border p-3 rounded-xl w-full mb-3">
+
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-xl">Update</button>
                 </form>
             </div>
+
+            <?php endif; ?>
 
             <!-- TABLE -->
             <div class="data-card rounded-3xl shadow overflow-hidden">
@@ -234,6 +345,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
                                 <th class="px-6 py-4 text-xs uppercase">Expense</th>
                                 <th class="px-6 py-4 text-xs uppercase">Amount</th>
                                 <th class="px-6 py-4 text-xs uppercase">Date</th>
+                                <th class="px-6 py-4 text-xs uppercase">Action</th>
                             </tr>
                         </thead>
 
@@ -246,6 +358,17 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; }
                             </td>
                             <td class="px-6 py-4">
                                 <?= date('d M Y', strtotime($row['expense_date'])) ?>
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="expenses.php?delete=<?= $row['id'] ?>" 
+                                onclick="return confirm('Delete this expense?')"
+                                class="text-red-500 font-bold text-sm">
+                                Delete
+                                </a>
+                                <a href="expenses.php?edit=<?= $row['id'] ?>" 
+                                    class="text-blue-500 text-sm font-bold mr-2">
+                                    Edit
+                                </a>
                             </td>
                         </tr>
                         <?php endwhile; ?>
